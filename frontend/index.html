@@ -1441,7 +1441,7 @@
       html += '</div></div>';
 
       var r = data.recommendation;
-      html += '<div class="suggestion-bar" id="sg-bar"><span class="sg-label">今日建议</span><span>主攻 </span><span class="sg-value">' + r.module + ' \u00b7 ' + r.point + '</span><span class="sg-label"> (' + r.accuracy + '%)</span><span class="sg-divider"></span><span class="sg-value">' + r.questionCount + ' \u9053</span><span class="sg-divider"></span><span class="sg-value">' + r.estimatedTime + '</span></div>';
+      html += '<div class="suggestion-bar" id="sg-bar"><span class="sg-label">今日建议</span><span>主攻 </span><span class="sg-value">' + r.module + ' \u00b7 ' + r.point + '</span><span class="sg-label"> (' + r.accuracy + '%)</span><span class="sg-divider"></span><span class="sg-value">' + r.questionCount + ' \u9053</span><span class="sg-divider"></span><span class="sg-value">' + r.estimatedTime + '</span><button class="sg-cta" onclick="alert(\'\u5373\u5c06\u5f00\u59cb\u7ec3\u4e60\uff1a' + r.module + ' - ' + r.point + '\u3002\')">\u5f00\u59cb\u7ec3\u4e60</button></div>';
 
       html += '<div class="row-2col"><div class="card"><div class="card-head"><h3>\u80fd\u529b\u96f7\u8fbe\u56fe</h3><span class="note">\u6bcf\u4e2a\u7ef4\u5ea6\u6ee1\u5206 100</span></div><div class="card-body"><div id="radar-chart" class="chart-box"></div></div></div>';
       html += '<div class="card"><div class="card-head"><h3>30 \u5929\u8d8b\u52bf</h3><span class="note">\u67f1\u72b6\u56fe = \u65e5\u5237\u9898\u91cf</span></div><div class="card-body"><div id="trend-chart" class="chart-box"></div></div></div></div>';
@@ -1514,28 +1514,9 @@
         yAxis:{type:'category',data:yLabels,inverse:true,axisLine:{lineStyle:{color:DASH_COLORS.border}},axisTick:{show:false},axisLabel:{color:DASH_COLORS.text,fontSize:12}},
         series:[{type:'bar',data:kData,barWidth:16,label:{show:true,position:'right',formatter:function(p){return Math.round(p.value*100)+'%';},color:DASH_COLORS.text,fontSize:11}}]
       });
-            kc.on('click', function(params) {
-        var name = params.name.trim();
-        if (name.indexOf('\u3000') === -1) {
-          var moduleName = name.split(/\s{2,}/)[0];
-          var items = d.knowledge.filter(function(k){return k.module===moduleName;});
-          var subs = items.map(function(k){return k.name + ': ' + Math.round(k.mastery*100) + '%';});
-          alert(moduleName + '\\n' + subs.join('\\n'));
-        }
-      });
       dashCharts.push(kc);
 
-      // 5. Error pie chart
-      var ec = echarts.init(document.getElementById('errors-chart'));
-      var errData = d.common_errors && d.common_errors.length ? d.common_errors : [{error_type:'暂无数据',count:1}];
-      ec.setOption({
-        tooltip:{trigger:'item',formatter:'{b}: {c} ({d}%)'},
-        color:[DASH_COLORS.primary,DASH_COLORS.green,DASH_COLORS.red,'#81c784','#c8e6c9','#e8f5e9'],
-        series:[{type:'pie',radius:['30%','60%'],center:['50%','50%'],data:errData.map(function(e){return{name:e.error_type,value:e.count};}),label:{color:DASH_COLORS.text,fontSize:12},itemStyle:{borderColor:DASH_COLORS.surface,borderWidth:2}}]
-      });
-      dashCharts.push(ec);
-
-      // 6. Heatmap calendar
+      // 5. Heatmap calendar
       var hc = echarts.init(document.getElementById('heatmap-chart'));
       hc.setOption({
         tooltip:{position:'top',formatter:function(p){return p.value[0]+'<br/>\u5237\u9898\u91cf: <b>'+p.value[1]+'</b> \u9053';}},
