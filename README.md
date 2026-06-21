@@ -2,8 +2,9 @@
 
 省 70% Token 的混合引擎考公备考系统。
 
-![数据看板概览](screenshots/chat-interface.png)
-![图表分析](screenshots/dashboard.png)
+<img src="screenshots/chat-interface.png" width="600" alt="AI 对话界面"/>
+
+<img src="screenshots/dashboard.png" width="600" alt="数据看板"/>
 
 ## 核心设计
 
@@ -70,11 +71,13 @@ uvicorn server:app --reload --port 8000
 
 ## 截图
 
-折桂支持快速从刷题数据生成分析报告：
+<img src="screenshots/chat-interface.png" width="600" alt="AI 对话界面"/>
 
-- **混合引擎流程侧栏**：每次分析都会标注哪步走了「代码节点」、哪步走了「模型节点」
-- **数据看板**：指标卡 + 雷达图 + 趋势图 + 模块正确率 + 热力图
-- **速算练习**：截位直除、分数比较等题型，计时刷题，每日打卡
+AI 对话界面 — 混合引擎流程侧栏会标注代码节点和模型节点的执行路径。
+
+<img src="screenshots/dashboard.png" width="600" alt="数据看板"/>
+
+数据看板 — 指标卡 + 雷达图 + 趋势图 + 模块正确率柱状图 + 打卡日历热力图。
 
 ## License
 
