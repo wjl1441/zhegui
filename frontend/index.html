@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>折桂 · 考公备考 AI 助手</title>
+  <script src="/assets/echarts.min.js"></script>
   <style>
     :root{
       --primary:#7a4f1d;
@@ -313,6 +314,108 @@
     .reasoning-step.done{color:var(--text);}
     .reasoning-detail{margin-left:24px;color:var(--muted);font-size:12px;}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+    /* ════ Dashboard ════ */
+    .dashboard-header {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+      padding: 16px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 10px; height: 10px; background: var(--primary);
+      transform: rotate(45deg); border-radius: 1px; flex-shrink: 0;
+    }
+    .brand-name { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+    .header-countdown { text-align: center; }
+    .countdown-label { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+    .countdown-value { font-size: 14px; color: var(--text); font-weight: 500; margin-top: 2px; }
+    .countdown-num { font-size: 36px; font-weight: 700; color: var(--primary); line-height: 1; letter-spacing: -0.03em; }
+    .header-right { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
+    .suggestion-bar {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap; row-gap: 8px;
+      padding: 12px 28px; min-height: 44px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px; color: var(--text);
+    }
+    .sg-label { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+    .sg-value { font-weight: 600; color: var(--primary); }
+    .sg-divider { width: 1px; height: 20px; background: var(--border); }
+    .exam-tag {
+      font-size: 12px; padding: 3px 10px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--muted); cursor: pointer; transition: all 0.15s;
+      white-space: nowrap; position: relative;
+    }
+    .exam-tag:hover { border-color: var(--primary); color: var(--primary); }
+    .exam-tag.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .exam-tag .exam-del {
+      display: none; cursor: pointer; margin-left: 2px; font-size: 11px;
+    }
+    .exam-tag:hover .exam-del { display: inline; }
+    .exam-tag.active .exam-del { display: inline; opacity: 0.7; }
+    .exam-tag.active .exam-del:hover { opacity: 1; }
+    .exam-tag-add {
+      font-size: 12px; padding: 3px 8px; border-radius: 12px;
+      border: 1px dashed var(--border); background: transparent;
+      color: var(--muted); cursor: pointer;
+    }
+    .exam-tag-add:hover { border-color: var(--primary); color: var(--primary); }
+    .dashboard-main { padding: 22px 24px 48px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+    .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 10px; }
+    .metric-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;
+      transition: border-color 0.15s, transform 0.15s; cursor: default;
+    }
+    .metric-card:hover { border-color: var(--primary); transform: translateY(-1px); }
+    .metric-card .m-label { font-size: 12px; color: var(--muted); letter-spacing: 0.015em; }
+    .metric-card .m-value {
+      font-size: 36px; font-weight: 700; line-height: 1.1; color: var(--text);
+      letter-spacing: -0.02em; display: flex; align-items: baseline; gap: 2px;
+    }
+    .metric-card .m-sub { font-size: 12px; color: var(--muted); }
+    .metric-card.accent .m-value { color: var(--primary); }
+    .metric-card.prominent .m-value { font-size: 44px; }
+    .m-trend { font-size: 14px; font-weight: 600; margin-left: 4px; }
+    .m-trend.up { color: var(--green); }
+    .m-trend.down { color: var(--red); }
+    .dashboard-main .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+    .dashboard-main .card-head {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .dashboard-main .card-head h3 { font-size: 15px; font-weight: 600; color: var(--text); }
+    .dashboard-main .card-head .note { font-size: 12px; color: var(--muted); }
+    .dashboard-main .card-body { padding: 16px 12px 12px; }
+    .chart-box { width: 100%; height: 320px; }
+    .row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .row-2col .chart-box { height: 340px; }
+    .full .chart-box { height: 380px; }
+    @media (max-width: 1024px) {
+      .metrics-row { grid-template-columns: repeat(2, 1fr); }
+      .row-2col { grid-template-columns: 1fr; }
+      .row-2col .chart-box, .full .chart-box { height: 300px; }
+      .metric-card .m-value { font-size: 28px; }
+      .metric-card.prominent .m-value { font-size: 34px; }
+      .countdown-num { font-size: 28px; }
+    }
+    @media (max-width: 600px) {
+      .dashboard-main { padding: 12px 10px 32px; gap: 10px; }
+      .dashboard-header { padding: 12px 14px; gap: 10px; }
+      .brand-name { font-size: 13px; }
+      .countdown-num { font-size: 26px; }
+      .header-countdown { order: 3; flex-basis: 100%; }
+      .suggestion-bar { padding: 10px 14px; gap: 8px; font-size: 12px; }
+      .suggestion-bar .sg-divider { display: none; }
+      .metrics-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .metric-card { padding: 12px 14px; }
+      .metric-card .m-value { font-size: 26px; }
+      .row-2col .chart-box, .full .chart-box { height: 280px; }
+    }
   </style>
 </head>
 <body>
@@ -431,9 +534,44 @@
       </section>
 
       <!-- 工具页面（默认隐藏） -->
-      <section class="tool-page" id="tool-dashboard" style="display:none;padding:24px;overflow:auto;">
-        <h2 style="margin-bottom:16px;">📈 数据看板</h2>
-        <div id="dashboard-content"></div>
+      <section class="tool-page" id="tool-dashboard" style="display:none;padding:0;overflow:auto;">
+        <header class="dashboard-header">
+          <div class="brand">
+            <span class="brand-mark"></span>
+            <span class="brand-name">折桂</span>
+          </div>
+          <div class="header-countdown">
+            <div class="countdown-label" id="dash-countdown-label">距国考笔试</div>
+            <div class="countdown-value"><span class="countdown-num" id="dash-countdown-num">--</span> 天</div>
+            <div class="exam-tags" id="dash-exam-tags" style="display:flex;gap:6px;margin-top:8px;justify-content:center;flex-wrap:wrap;"></div>
+          </div>
+          <div class="header-right">
+            <span class="sync-dot"></span>
+            <span id="dash-sync-time">数据加载中...</span>
+          </div>
+        </header>
+        <div class="suggestion-bar" id="dash-suggestion-bar"></div>
+        <main class="dashboard-main">
+          <div class="metrics-row" id="dash-metric-cards"></div>
+          <div class="row-2col">
+            <div class="card">
+              <div class="card-head"><h3>六维能力雷达</h3><span class="note">各模块掌握度评估</span></div>
+              <div class="card-body"><div class="chart-box" id="dash-radar-chart"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>速算正确率趋势</h3><span class="note">近 7 天每日正确率</span></div>
+              <div class="card-body"><div class="chart-box" id="dash-trend-chart"></div></div>
+            </div>
+          </div>
+          <div class="card full">
+            <div class="card-head"><h3>各模块错题掌握率</h3><span class="note">已掌握 / 总错题，低于 60% 标红</span></div>
+            <div class="card-body"><div class="chart-box" id="dash-module-chart"></div></div>
+          </div>
+          <div class="card full">
+            <div class="card-head"><h3>打卡日历 · 近三个月</h3><span class="note">颜色越深表示当天刷题量越大</span></div>
+            <div class="card-body"><div class="chart-box" id="dash-heatmap-chart"></div></div>
+          </div>
+        </main>
       </section>
 
       <section class="tool-page" id="tool-mistakes" style="display:none;padding:24px;overflow:auto;">
@@ -1381,24 +1519,378 @@
       if (composerWrap) composerWrap.style.display = 'block';
     }
 
-    // ========== 数据看板 ==========
+    // ========== 数据看板（ECharts） ==========
+    let dashboardCharts = [];
+
     async function loadDashboard() {
+      // 清理旧图表
+      dashboardCharts.forEach(c => { try { c.dispose(); } catch(e) {} });
+      dashboardCharts = [];
+
+      // 检查 ECharts 是否已加载
+      if (typeof echarts === 'undefined') {
+        document.getElementById('dash-metric-cards').innerHTML =
+          '<div class="metric-card" style="grid-column:1/-1;text-align:center;color:var(--muted);">' +
+          'ECharts 图表库加载失败，请检查网络连接后刷新页面。<br>' +
+          '<small>CDN: cdn.jsdelivr.net</small></div>';
+        return;
+      }
+
       try {
         const r = await fetch('/api/dashboard');
+        if (!r.ok) throw new Error('dashboard API ' + r.status);
         const d = await r.json();
-        document.getElementById('dashboard-content').innerHTML = `
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-            <div class="panel"><div class="stat"><span>连续打卡</span><b class="green">${d.streak} 天</b></div></div>
-            <div class="panel"><div class="stat"><span>错题总数</span><b>${d.mistakes.total}</b></div></div>
-            <div class="panel"><div class="stat"><span>速算练习</span><b>${d.speed_calc.total_sessions} 次</b></div></div>
-            <div class="panel"><div class="stat"><span>平均正确率</span><b class="green">${Math.round(d.speed_calc.avg_accuracy || 0)}%</b></div></div>
-          </div>
-          <div class="panel"><h3 class="panel-title">今日状态</h3>
-            <div class="stat"><span>打卡</span><b>${d.today.checkin ? '✅' : '❌'}</b></div>
-            <div class="stat"><span>速算</span><b>${d.today.speed_calc_done ? '✅' : '❌'}</b></div>
-          </div>`;
-      } catch (e) { console.error(e); }
+
+        const profileR = await fetch('/api/profile');
+        if (!profileR.ok) throw new Error('profile API ' + profileR.status);
+        const profile = await profileR.json();
+
+        const historyR = await fetch('/api/checkin/history?days=90');
+        if (!historyR.ok) throw new Error('checkin API ' + historyR.status);
+        const historyData = await historyR.json();
+
+        const now = new Date();
+        const serverNow = d.server_time?.now ? new Date(d.server_time.now) : now;
+        const todayStr = d.server_time?.today || (serverNow.getFullYear() + '-' +
+          String(serverNow.getMonth()+1).padStart(2,'0') + '-' +
+          String(serverNow.getDate()).padStart(2,'0'));
+        const timeStr = todayStr + ' ' +
+          String(serverNow.getHours()).padStart(2,'0') + ':' +
+          String(serverNow.getMinutes()).padStart(2,'0');
+        document.getElementById('dash-sync-time').textContent = '数据更新于 ' + timeStr;
+
+        // 倒计时 + 考试标签
+        const examConfigs = d.exam?.exam_configs || [];
+        const defaultExam = examConfigs.find(e => e.is_default) || examConfigs[0];
+        window._examConfigs = examConfigs;
+        window._selectedExamId = localStorage.getItem('zhegui_selected_exam') || (defaultExam ? defaultExam.id : null);
+        renderExamTags(examConfigs);
+        updateCountdown(examConfigs);
+
+        // 建议栏
+        const weakModules = (profile.weak_modules || []).filter(m => m);
+        const suggestion = document.getElementById('dash-suggestion-bar');
+        if (weakModules.length > 0) {
+          suggestion.innerHTML =
+            '<span class="sg-label">今日建议</span>' +
+            '<span>主攻 </span><span class="sg-value">' + weakModules[0] + '</span>' +
+            '<span class="sg-label">（薄弱模块）</span>' +
+            '<span class="sg-divider"></span>' +
+            '<span class="sg-value">20 道</span>' +
+            '<span class="sg-divider"></span>' +
+            '<span class="sg-value">约 30 分钟</span>';
+        } else {
+          suggestion.innerHTML =
+            '<span class="sg-label">今日建议</span>' +
+            '<span>继续保持当前节奏，查漏补缺。</span>';
+        }
+
+        // 指标卡片
+        const totalMistakes = d.mistakes?.total || 0;
+        const speedSessions = d.speed_calc?.total_sessions || 0;
+        const avgAccuracy = Math.round(d.speed_calc?.avg_accuracy || 0);
+        const streak = d.streak || 0;
+        const totalQuestions = totalMistakes + speedSessions * 15;
+        const selectedExam = examConfigs.find(e => e.id === window._selectedExamId) || defaultExam;
+        const countdownDays = selectedExam?.days_left ?? '--';
+        const examLabel = selectedExam?.name || '国考';
+        document.getElementById('dash-metric-cards').innerHTML =
+          metricCard('距' + examLabel + '笔试', countdownDays, '天', selectedExam?.date || '未设置', true, true) +
+          metricCard('速算正确率', avgAccuracy, '%', speedSessions + ' 次练习', true) +
+          metricCard('连续打卡', streak, '天', '近30天记录', false) +
+          metricCard('累计题目', formatNum(totalQuestions), '', '错题 ' + totalMistakes + ' · 速算 ' + speedSessions + ' 次', false);
+
+        // ── 雷达图（真实数据） ──
+        const radarEl = document.getElementById('dash-radar-chart');
+        const radarChart = echarts.init(radarEl);
+        dashboardCharts.push(radarChart);
+        const moduleNames = ['言语理解', '数量关系', '判断推理', '资料分析', '常识判断', '政治理论'];
+
+        // 真实数据来源1：模考成绩
+        const examScores = {};
+        (d.exams || []).forEach(ex => {
+          const scores = ex.module_scores || [];
+          scores.forEach(s => {
+            const name = s.module || s.name;
+            const score = s.score || s.accuracy || s.total;
+            if (name && score != null) {
+              if (!examScores[name] || score > examScores[name]) examScores[name] = score;
+            }
+          });
+        });
+
+        // 真实数据来源2：错题掌握率
+        const mistakeModules = d.mistakes?.modules || [];
+        const weaknessData = (profile.common_errors || []).length;
+
+        const radarHasData = Object.keys(examScores).length > 0 || mistakeModules.length > 0;
+
+        if (!radarHasData) {
+          radarEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:14px;">暂无数据 — 完成模考或录入错题后自动统计</div>';
+        } else {
+          const masteryData = moduleNames.map(m => {
+            // 优先用模考分数
+            if (examScores[m] != null) return examScores[m];
+            // 其次用错题掌握率
+            const mod = mistakeModules.find(x => x.module === m);
+            if (mod && mod.count > 0) {
+              return Math.round((mod.mastered || 0) / mod.count * 100);
+            }
+            return 0;
+          });
+          radarChart.setOption({
+            tooltip: { trigger: 'item' },
+            radar: {
+              center: ['50%', '52%'], radius: '68%',
+              axisName: { color: '#211811', fontSize: 12, fontWeight: 500 },
+              indicator: moduleNames.map(n => ({ name: n, max: 100 })),
+              axisLine: { lineStyle: { color: '#dfcfb4' } },
+              splitLine: { lineStyle: { color: '#dfcfb4' } },
+              splitArea: { areaStyle: { color: ['#fffaf1', '#f4efe5'] } }
+            },
+            series: [{
+              type: 'radar', name: '当前水平',
+              data: [{ value: masteryData, name: '当前水平' }],
+              symbol: 'circle', symbolSize: 5,
+              lineStyle: { color: '#7a4f1d', width: 2 },
+              areaStyle: { color: '#7a4f1d', opacity: 0.12 },
+              itemStyle: { color: '#7a4f1d' }
+            }]
+          });
+        }
+
+        // ── 30天趋势（速算正确率） ──
+        const trendEl = document.getElementById('dash-trend-chart');
+        const trendChart = echarts.init(trendEl);
+        dashboardCharts.push(trendChart);
+        const trend = d.speed_calc?.trend || [];
+        const trendDates = trend.map(t => {
+          const dt = t.date || t.day || '';
+          return dt.length > 5 ? dt.slice(5) : dt;
+        });
+        const trendAcc = trend.map(t => Math.round(t.accuracy || 0));
+        if (trend.length === 0) {
+          trendEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:14px;">暂无数据 — 完成速算练习后自动统计</div>';
+        } else {
+          trendChart.setOption({
+            tooltip: { trigger: 'axis', formatter: p => p[0].name + '<br/>正确率: <b>' + p[0].value + '%</b>' },
+            grid: { left: 48, right: 24, top: 30, bottom: 42 },
+            xAxis: {
+              type: 'category', data: trendDates,
+              axisLine: { lineStyle: { color: '#dfcfb4' } }, axisTick: { show: false },
+              axisLabel: { color: '#736657', fontSize: 10, rotate: 45 }
+            },
+            yAxis: {
+              type: 'value', min: 0, max: 100,
+              axisLabel: { formatter: '{value}%', color: '#736657', fontSize: 11 },
+              splitLine: { lineStyle: { color: '#dfcfb4', type: 'dashed' } }
+            },
+            series: [{
+              name: '正确率', type: 'line', data: trendAcc,
+              lineStyle: { color: '#5b8c5a', width: 2.5 },
+              itemStyle: { color: '#5b8c5a' },
+              symbol: 'circle', symbolSize: 6, smooth: true,
+              areaStyle: { color: '#5b8c5a', opacity: 0.08 }
+            }]
+          });
+        }
+
+        // ── 模块错题掌握率 ──
+        const moduleEl = document.getElementById('dash-module-chart');
+        const moduleChart = echarts.init(moduleEl);
+        dashboardCharts.push(moduleChart);
+        const modData = d.mistakes?.modules || [];
+        const modHasData = modData.length > 0;
+        if (!modHasData) {
+          moduleEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:14px;">暂无数据 — 录入错题后自动统计</div>';
+        } else {
+          const modMastery = moduleNames.map(m => {
+            const found = modData.find(x => x.module === m);
+            if (!found || found.count === 0) return null;
+            return Math.round((found.mastered || 0) / found.count * 100);
+          });
+          const modColors = modMastery.map(v => v !== null && v < 60 ? '#c0392b' : '#5b8c5a');
+          moduleChart.setOption({
+            tooltip: { trigger: 'axis', formatter: p => p[0].name + '<br/>掌握率: <b>' + (p[0].value ?? '--') + '%</b>' },
+            grid: { left: 48, right: 24, top: 30, bottom: 8 },
+            xAxis: {
+              type: 'category', data: moduleNames,
+              axisLine: { lineStyle: { color: '#dfcfb4' } }, axisTick: { show: false },
+              axisLabel: { color: '#211811', fontSize: 13, fontWeight: 500 }
+            },
+            yAxis: {
+              type: 'value', min: 0, max: 100,
+              axisLabel: { formatter: '{value}%', color: '#736657', fontSize: 11 },
+              splitLine: { lineStyle: { color: '#dfcfb4', type: 'dashed' } }
+            },
+            series: [{
+              type: 'bar', barWidth: 48,
+              data: modMastery.map((v, i) => ({
+                value: v,
+                itemStyle: { color: modColors[i], borderRadius: [4,4,0,0] },
+                label: { show: true, position: 'top', formatter: v !== null ? v + '%' : '--', color: '#211811', fontSize: 12, fontWeight: 600 }
+              })),
+              markLine: {
+                silent: true,
+                data: [{ yAxis: 60, label: { formatter: '60% 警戒线', color: '#c0392b', fontSize: 11 }, lineStyle: { color: '#c0392b', type: 'dashed', width: 1 } }]
+              }
+            }]
+          });
+        }
+
+        // ── 打卡热力图 ──
+        const heatmapEl = document.getElementById('dash-heatmap-chart');
+        const heatmapChart = echarts.init(heatmapEl);
+        dashboardCharts.push(heatmapChart);
+        const checkinHistory = historyData.history || [];
+        const heatData = checkinHistory.map(h => [h.date, h.duration_minutes || 1]);
+        if (heatData.length === 0) {
+          heatData.push([timeStr.slice(0,10), 0]);
+        }
+        // 计算日期范围：过去3个月到今天
+        const today = todayStr;
+        const threeMonthsAgo = new Date(serverNow);
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        const rangeStart = threeMonthsAgo.getFullYear() + '-' +
+          String(threeMonthsAgo.getMonth()+1).padStart(2,'0') + '-' +
+          String(threeMonthsAgo.getDate()).padStart(2,'0');
+        heatmapChart.setOption({
+          tooltip: {
+            position: 'top',
+            formatter: p => p.value[0] + '<br/>刷题量: <b>' + (p.value[1] || 0) + '</b> 道'
+          },
+          visualMap: {
+            min: 0, max: 8, calculable: true,
+            orient: 'horizontal', left: 'center', bottom: 4,
+            inRange: { color: ['#e8f5e9', '#c8e6c9', '#a5d6a7', '#81c784', '#4caf50'] },
+            textStyle: { color: '#211811', fontSize: 11 },
+            itemWidth: 14, itemHeight: 10
+          },
+          calendar: {
+            top: 20, left: 40, right: 20, bottom: 40,
+            range: [rangeStart, today],
+            cellSize: ['auto', 16],
+            splitLine: { lineStyle: { color: '#dfcfb4', width: 2 } },
+            itemStyle: { borderColor: '#fffaf1', borderWidth: 3, borderRadius: 2 },
+            yearLabel: { show: false },
+            monthLabel: { color: '#211811', fontSize: 12, fontWeight: 500 },
+            dayLabel: { color: '#736657', fontSize: 10 }
+          },
+          series: [{
+            type: 'heatmap', coordinateSystem: 'calendar',
+            data: heatData, label: { show: false }
+          }]
+        });
+
+      } catch (e) {
+        console.error('看板加载失败:', e);
+        document.getElementById('dash-metric-cards').innerHTML =
+          '<div class="metric-card" style="grid-column:1/-1;text-align:center;color:var(--red);">看板数据加载失败：' + (e.message || '未知错误') + '</div>';
+      }
     }
+
+    function metricCard(label, value, unit, sub, accent, prominent) {
+      const classes = ['metric-card'];
+      if (accent) classes.push('accent');
+      if (prominent) classes.push('prominent');
+      const unitHtml = unit ? '<span style="font-size:20px;font-weight:500;">' + unit + '</span>' : '';
+      return '<div class="' + classes.join(' ') + '">' +
+        '<div class="m-label">' + label + '</div>' +
+        '<div class="m-value">' + value + unitHtml + '</div>' +
+        '<div class="m-sub">' + sub + '</div>' +
+        '</div>';
+    }
+
+    function formatNum(n) {
+      return String(n).replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+    }
+
+    // ========== 考试配置 ==========
+    function renderExamTags(exams) {
+      const box = document.getElementById('dash-exam-tags');
+      if (!box || !exams.length) return;
+      const selectedId = window._selectedExamId;
+      let html = exams.map(e => {
+        const cls = e.id === selectedId ? 'exam-tag active' : 'exam-tag';
+        const days = e.days_left != null ? e.days_left + '天' : '--';
+        const delBtn = exams.length > 1 ? `<span class="exam-del" onclick="event.stopPropagation();deleteExam('${e.id}')" title="移除">移除</span>` : '';
+        return `<span class="${cls}" onclick="selectExam('${e.id}')" title="${e.date || ''}">${e.name} ${days}${delBtn}</span>`;
+      }).join('');
+      html += `<span class="exam-tag-add" onclick="showAddExamDialog()" title="添加考试">+ 添加</span>`;
+      box.innerHTML = html;
+    }
+
+    function updateCountdown(exams) {
+      const selectedId = window._selectedExamId;
+      const exam = exams.find(e => e.id === selectedId) || exams[0];
+      const countdownNum = document.getElementById('dash-countdown-num');
+      const countdownLabel = document.getElementById('dash-countdown-label');
+      if (!exam) {
+        countdownNum.textContent = '--';
+        countdownLabel.textContent = '未设置考试';
+        return;
+      }
+      const days = exam.days_left;
+      countdownNum.textContent = days != null && days > 0 ? days : (days === 0 ? '0' : '--');
+      countdownLabel.textContent = '距 ' + exam.name + ' 笔试';
+    }
+
+    function selectExam(examId) {
+      window._selectedExamId = examId;
+      localStorage.setItem('zhegui_selected_exam', examId);
+      const exams = window._examConfigs || [];
+      renderExamTags(exams);
+      updateCountdown(exams);
+      const exam = exams.find(e => e.id === examId);
+      if (exam) {
+        const el = document.querySelector('.metric-card.accent.prominent .m-value');
+        if (el) el.innerHTML = (exam.days_left ?? '--') + '<span style="font-size:20px;font-weight:500;">天</span>';
+        const label = document.querySelector('.metric-card.accent.prominent .m-label');
+        if (label) label.textContent = '距' + exam.name + '笔试';
+        const sub = document.querySelector('.metric-card.accent.prominent .m-sub');
+        if (sub) sub.textContent = exam.date || '未设置';
+      }
+    }
+
+    async function showAddExamDialog() {
+      const name = prompt('考试名称（如：广东省考、事业编联考）：');
+      if (!name) return;
+      const date = prompt('考试日期（YYYY-MM-DD 格式，如 2026-03-15）：');
+      if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        alert('日期格式不正确，请使用 YYYY-MM-DD');
+        return;
+      }
+      const province = prompt('省份（如 广东、贵州，国考留空）：') || '';
+      try {
+        const r = await fetch('/api/exam-configs', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ name, date, province, exam_type: 'custom', is_default: false })
+        });
+        if (!r.ok) throw new Error('添加失败');
+        loadDashboard();
+      } catch (e) {
+        alert('添加考试失败：' + e.message);
+      }
+    }
+
+    async function deleteExam(examId) {
+      if (!confirm('确定删除这个考试配置？')) return;
+      try {
+        await fetch('/api/exam-configs/' + examId, { method: 'DELETE' });
+        if (window._selectedExamId === examId) {
+          window._selectedExamId = null;
+          localStorage.removeItem('zhegui_selected_exam');
+        }
+        loadDashboard();
+      } catch (e) {
+        alert('删除失败');
+      }
+    }
+
+    window.addEventListener('resize', () => {
+      dashboardCharts.forEach(c => { try { c.resize(); } catch(e) {} });
+    });
 
     // ========== 错题本 ==========
     let currentMistakeFilter = '';

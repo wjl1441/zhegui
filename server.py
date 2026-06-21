@@ -152,6 +152,112 @@ async def toggle_study_plan_day_done(plan_id: int, day: int):
     return {"message": "已更新进度", "plan": result}
 
 
+# ========== 考试配置 ==========
+DEFAULT_EXAMS = [
+    {"id": "guokao", "name": "国考", "exam_type": "guokao", "province": "", "date": "2026-11-22", "is_default": True},
+]
+
+
+def _get_exam_configs(session_id: str = "default") -> list:
+    """从学情档案读取考试配置，没有则返回默认。"""
+    try:
+        profile = learning_profile.get_profile(session_id)
+        configs = profile.get("exam_configs")
+        if isinstance(configs, list) and len(configs) > 0:
+            return configs
+    except Exception:
+        pass
+    return DEFAULT_EXAMS[:]
+
+
+def _save_exam_configs(configs: list, session_id: str = "default"):
+    learning_profile.update_profile(session_id, exam_configs=configs)
+
+
+@app.get("/api/exam-configs")
+async def list_exam_configs(session_id: str = "default"):
+    from datetime import datetime
+    configs = _get_exam_configs(session_id)
+    today = datetime.now().date()
+    result = []
+    for cfg in configs:
+        days_left = None
+        try:
+            target = datetime.strptime(cfg["date"], "%Y-%m-%d").date()
+            days_left = (target - today).days
+        except Exception:
+            pass
+        result.append({**cfg, "days_left": days_left})
+    return {"exams": result}
+
+
+class ExamConfigRequest(BaseModel):
+    name: str
+    exam_type: str = "custom"
+    province: str = ""
+    date: str
+    is_default: bool = False
+
+
+@app.post("/api/exam-configs")
+async def add_exam_config(req: ExamConfigRequest, session_id: str = "default"):
+    import uuid
+    configs = _get_exam_configs(session_id)
+    new_id = str(uuid.uuid4())[:8]
+    new_exam = {
+        "id": new_id,
+        "name": req.name,
+        "exam_type": req.exam_type,
+        "province": req.province,
+        "date": req.date,
+        "is_default": req.is_default,
+    }
+    configs.append(new_exam)
+    _save_exam_configs(configs, session_id)
+    return {"message": "考试已添加", "exam": new_exam}
+
+
+@app.put("/api/exam-configs/{exam_id}")
+async def update_exam_config(exam_id: str, req: ExamConfigRequest, session_id: str = "default"):
+    configs = _get_exam_configs(session_id)
+    for cfg in configs:
+        if cfg["id"] == exam_id:
+            cfg["name"] = req.name
+            cfg["exam_type"] = req.exam_type
+            cfg["province"] = req.province
+            cfg["date"] = req.date
+            cfg["is_default"] = req.is_default
+            _save_exam_configs(configs, session_id)
+            return {"message": "考试已更新", "exam": cfg}
+    raise HTTPException(status_code=404, detail="考试配置不存在")
+
+
+@app.delete("/api/exam-configs/{exam_id}")
+async def delete_exam_config(exam_id: str, session_id: str = "default"):
+    configs = _get_exam_configs(session_id)
+    new_configs = [c for c in configs if c["id"] != exam_id]
+    if len(new_configs) == len(configs):
+        raise HTTPException(status_code=404, detail="考试配置不存在")
+    _save_exam_configs(new_configs, session_id)
+    return {"message": "考试已删除"}
+
+
+@app.post("/api/exam-configs/{exam_id}/default")
+async def set_default_exam(exam_id: str, session_id: str = "default"):
+    configs = _get_exam_configs(session_id)
+    found = False
+    for cfg in configs:
+        if cfg["id"] == exam_id:
+            cfg["is_default"] = True
+            found = True
+        else:
+            cfg["is_default"] = False
+    if not found:
+        raise HTTPException(status_code=404, detail="考试配置不存在")
+    _save_exam_configs(configs, session_id)
+    return {"message": "已设为默认", "exams": configs}
+
+
 @app.get("/api/stats")
 async def get_stats():
     """获取累计统计"""
@@ -548,19 +654,23 @@ class ExamTarget(BaseModel):
 
 
 @app.get("/api/dashboard")
-async def get_dashboard(province: Optional[str] = None, exam_date: Optional[str] = None):
+async def get_dashboard(province: Optional[str] = None, exam_date: Optional[str] = None, session_id: str = "default"):
     """获取数据看板数据"""
     from datetime import datetime, timedelta
 
     today = datetime.now().date()
 
-    # 1. 倒计时
+    # 1. 倒计时（从考试配置读取）
+    exam_configs = _get_exam_configs(session_id or "default")
+    default_exam = next((e for e in exam_configs if e.get("is_default")), exam_configs[0] if exam_configs else None)
     days_left = None
-    if exam_date:
+    exam_date_str = None
+    if default_exam:
+        exam_date_str = default_exam.get("date")
         try:
-            target = datetime.strptime(exam_date, '%Y-%m-%d').date()
+            target = datetime.strptime(exam_date_str, "%Y-%m-%d").date()
             days_left = (target - today).days
-        except:
+        except Exception:
             pass
 
     # 2. 连续打卡天数
@@ -585,9 +695,14 @@ async def get_dashboard(province: Optional[str] = None, exam_date: Optional[str]
 
     return {
         "exam": {
-            "province": province,
-            "exam_date": exam_date,
-            "days_left": days_left
+            "province": province or (default_exam.get("province") if default_exam else None),
+            "exam_date": exam_date_str,
+            "days_left": days_left,
+            "exam_name": default_exam.get("name") if default_exam else "国考",
+            "exam_configs": [
+                {**cfg, "days_left": (lambda d: (datetime.strptime(d, "%Y-%m-%d").date() - today).days if d else None)(cfg.get("date"))}
+                for cfg in exam_configs
+            ]
         },
         "streak": streak,
         "mistakes": {
@@ -616,6 +731,11 @@ async def get_dashboard(province: Optional[str] = None, exam_date: Optional[str]
             "checkin": today_checkin,
             "speed_calc_done": today_speed_done,
             "mistakes_added": 0  # TODO: 统计今日新增错题
+        },
+        "server_time": {
+            "now": datetime.now().isoformat(),
+            "today": today.isoformat(),
+            "year": today.year
         }
     }
 
