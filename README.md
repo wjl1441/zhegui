@@ -2,9 +2,9 @@
 
 省 70% Token 的混合引擎考公备考系统。
 
-<img src="screenshots/chat-interface.png" width="600" alt="AI 对话界面"/>
-
-<img src="screenshots/dashboard.png" width="600" alt="数据看板"/>
+> **AI 对话界面** — 混合引擎流程侧栏标注代码节点和模型节点的执行路径。
+>
+> **数据看板** — 指标卡 + 雷达图 + 趋势图 + 模块正确率 + 打卡热力图。
 
 ## 核心设计
 
@@ -71,13 +71,13 @@ uvicorn server:app --reload --port 8000
 
 ## 截图
 
-<img src="screenshots/chat-interface.png" width="600" alt="AI 对话界面"/>
+![AI 对话界面](https://github.com/wjl1441/zhegui/raw/main/screenshots/chat.png?v=2)
 
-AI 对话界面 — 混合引擎流程侧栏会标注代码节点和模型节点的执行路径。
+*AI 对话界面 — 混合引擎流程侧栏标注代码节点和模型节点执行路径。*
 
-<img src="screenshots/dashboard.png" width="600" alt="数据看板"/>
+![数据看板](https://github.com/wjl1441/zhegui/raw/main/screenshots/dashboard.png?v=2)
 
-数据看板 — 指标卡 + 雷达图 + 趋势图 + 模块正确率柱状图 + 打卡日历热力图。
+*数据看板 — 指标卡 + 雷达图 + 趋势图 + 模块正确率 + 打卡热力图。*
 
 ## License
 
