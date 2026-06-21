@@ -635,6 +635,7 @@ async def get_chart_data():
     exams = db.get_exam_history(limit=5)
     weakness_data = db.get_weakness_analysis()
     weakness = weakness_data["weakness_by_module"]
+    common_errors = [e for e in weakness_data.get("common_errors", []) if e.get("error_type")]
 
     exam_date_str = os.getenv("EXAM_DATE", "2026-11-29")
     try:
@@ -655,7 +656,7 @@ async def get_chart_data():
         {"label": "距考试", "value": str(days_left) if days_left else "—", "unit": "天", "sub": "锁定 " + exam_date_str, "accent": False, "prominent": True}
     ]
 
-    modules_order = ["言语理解", "判断推理", "资料分析", "数量关系", "常识判断"]
+    modules_order = ["言语理解", "判断推理", "资料分析", "数量关系", "常识判断", "政治理论"]
 
     radar_scores = []
     for mod in modules_order:
@@ -690,29 +691,16 @@ async def get_chart_data():
         questions_30.append(q)
         accuracy_30.append(acc)
 
-    mod_names = []
-    mod_acc = []
+    sub_map = {"言语理解":["片段阅读","语句表达","逻辑填空"],"数量关系":["数字推理","数学运算","工程问题"],"判断推理":["图形推理","定义判断","类比推理","逻辑判断"],"资料分析":["增长量","增长率","比重","倍数"],"常识判断":["政治常识","法律常识","经济常识","文史常识"],"政治理论":["时政热点","方针政策","思想体系"]}
+    mod_names = []; mod_acc = []; knowledge = []
     for mod in modules_order:
         ms = next((m for m in weakness if m["module"] == mod), None)
         mod_names.append(mod)
-        mod_acc.append(round(ms["mastery_rate"] * 100, 1) if ms and ms["total"] > 0 else 0)
-
-    import random as _rnd
-    sub_map = {
-        "言语理解": ["片段阅读", "语句表达", "逻辑填空"],
-        "数量关系": ["数字推理", "数学运算", "工程问题"],
-        "判断推理": ["图形推理", "定义判断", "类比推理", "逻辑判断"],
-        "资料分析": ["增长量", "增长率", "比重", "倍数"],
-        "常识判断": ["政治常识", "法律常识", "经济常识", "文史常识"]
-    }
-    knowledge = []
-    for mod in modules_order:
-        ms = next((m for m in weakness if m["module"] == mod), None)
-        base = round(ms["mastery_rate"], 2) if ms and ms["total"] > 0 else 0.5
+        rate = round(ms["mastery_rate"] * 100, 1) if ms and ms["total"] > 0 else 0
+        mod_acc.append(rate)
+        base_rate = round(ms["mastery_rate"], 2) if ms and ms["total"] > 0 else 0
         for sub in sub_map.get(mod, []):
-            rng = _rnd.Random(mod + sub)
-            mastery = max(0.1, min(1.0, base + rng.uniform(-0.15, 0.15)))
-            knowledge.append({"module": mod, "name": sub, "mastery": round(mastery, 2)})
+            knowledge.append({"module": mod, "name": sub, "mastery": max(0.1, min(1.0, base_rate))})
 
     worst = sorted(weakness, key=lambda x: x["mastery_rate"])[0] if weakness else None
     point_map = {"言语理解":"逻辑填空","数量关系":"数学运算","判断推理":"逻辑判断","资料分析":"比重","常识判断":"法律常识"}
@@ -727,9 +715,10 @@ async def get_chart_data():
     return {
         "stats": stats,
         "radar": {"dimensions": modules_order, "scores": radar_scores, "max": 100},
-        "trend": {"dates": dates_30, "questions": questions_30, "accuracy": accuracy_30},
+        "trend": {"dates": dates_30, "accuracy": accuracy_30},
         "modules": {"names": mod_names, "accuracy": mod_acc},
         "knowledge": knowledge,
+        "common_errors": common_errors,
         "recommendation": rec,
         "heatmap": heatmap_data
     }
@@ -753,6 +742,7 @@ async def generate_report():
     streak = db.get_checkin_streak()
     weakness_data = db.get_weakness_analysis()
     weakness = weakness_data["weakness_by_module"]
+    common_errors = [e for e in weakness_data.get("common_errors", []) if e.get("error_type")]
 
     # ========== 数据阈值检查 ==========
     THRESHOLDS = {
