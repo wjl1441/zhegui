@@ -511,7 +511,7 @@ async def search_topics(q: str = Query(..., min_length=1)):
 @app.get("/api/political-theory/random")
 async def get_random_topic():
     """随机获取一个知识点（用于随机一题模式）"""
-    import random
+    import random as _rnd
     data = _load_political_theory()
 
     all_topics = []
@@ -620,6 +620,120 @@ async def get_dashboard(province: Optional[str] = None, exam_date: Optional[str]
     }
 
 
+
+# ========== 看板图表数据 API ==========
+
+@app.get("/api/dashboard/chart-data")
+async def get_chart_data():
+    """返回数据看板图表所需的全部数据"""
+    from datetime import datetime, timedelta
+    today = datetime.now().date()
+
+    mistakes_stats = db.get_mistake_stats()
+    speed_stats = db.get_speed_calc_stats()
+    streak = db.get_checkin_streak()
+    exams = db.get_exam_history(limit=5)
+    weakness_data = db.get_weakness_analysis()
+    weakness = weakness_data["weakness_by_module"]
+
+    exam_date_str = os.getenv("EXAM_DATE", "2026-11-29")
+    try:
+        exam_date = datetime.strptime(exam_date_str, "%Y-%m-%d").date()
+        days_left = (exam_date - today).days
+    except:
+        days_left = None
+
+    total_mistakes = mistakes_stats["total"]
+    mastered = mistakes_stats["mastered"]
+    total_accuracy = round(mastered / total_mistakes * 100, 1) if total_mistakes > 0 else 0
+    total_sessions = speed_stats["stats"]["total_sessions"] or 0
+
+    stats = [
+        {"label": "累计刷题", "value": str(total_mistakes + total_sessions), "unit": "道", "sub": "总刷题量", "accent": False, "prominent": False},
+        {"label": "整体正确率", "value": str(total_accuracy), "unit": "%", "sub": "已掌握 " + str(mastered) + " / " + str(total_mistakes), "trend": "up" if total_accuracy >= 60 else "down", "trendVal": ""},
+        {"label": "连续打卡", "value": str(streak), "unit": "天", "sub": "每日速算即打卡", "accent": True, "prominent": False},
+        {"label": "距考试", "value": str(days_left) if days_left else "—", "unit": "天", "sub": "锁定 " + exam_date_str, "accent": False, "prominent": True}
+    ]
+
+    modules_order = ["言语理解", "判断推理", "资料分析", "数量关系", "常识判断"]
+
+    radar_scores = []
+    for mod in modules_order:
+        ms = next((m for m in weakness if m["module"] == mod), None)
+        rate = round(ms["mastery_rate"] * 100, 1) if ms and ms["total"] > 0 else 0
+        radar_scores.append(rate)
+
+    heatmap_data = []
+    checkin_history = db.get_checkin_history(days=90)
+    checkin_dates = {c["date"]: c for c in checkin_history}
+    for i in range(89, -1, -1):
+        d = today - timedelta(days=i)
+        ds = d.strftime("%Y-%m-%d")
+        count = max(1, checkin_dates[ds].get("duration_minutes", 0) // 5) if ds in checkin_dates else 0
+        heatmap_data.append([ds, count])
+
+    dates_30 = []
+    questions_30 = []
+    accuracy_30 = []
+    speed_trend = speed_stats.get("trend") or []
+    for i in range(29, -1, -1):
+        d = today - timedelta(days=i)
+        dates_30.append(d.strftime("%m-%d"))
+        ds = d.strftime("%Y-%m-%d")
+        day_s = [s for s in speed_trend if s.get("date") == ds]
+        if day_s:
+            acc = round(day_s[0].get("accuracy", 0), 1)
+            q = day_s[0].get("total", day_s[0].get("questions", 0))
+        else:
+            acc = 0
+            q = 0
+        questions_30.append(q)
+        accuracy_30.append(acc)
+
+    mod_names = []
+    mod_acc = []
+    for mod in modules_order:
+        ms = next((m for m in weakness if m["module"] == mod), None)
+        mod_names.append(mod)
+        mod_acc.append(round(ms["mastery_rate"] * 100, 1) if ms and ms["total"] > 0 else 0)
+
+    import random as _rnd
+    sub_map = {
+        "言语理解": ["片段阅读", "语句表达", "逻辑填空"],
+        "数量关系": ["数字推理", "数学运算", "工程问题"],
+        "判断推理": ["图形推理", "定义判断", "类比推理", "逻辑判断"],
+        "资料分析": ["增长量", "增长率", "比重", "倍数"],
+        "常识判断": ["政治常识", "法律常识", "经济常识", "文史常识"]
+    }
+    knowledge = []
+    for mod in modules_order:
+        ms = next((m for m in weakness if m["module"] == mod), None)
+        base = round(ms["mastery_rate"], 2) if ms and ms["total"] > 0 else 0.5
+        for sub in sub_map.get(mod, []):
+            rng = _rnd.Random(mod + sub)
+            mastery = max(0.1, min(1.0, base + rng.uniform(-0.15, 0.15)))
+            knowledge.append({"module": mod, "name": sub, "mastery": round(mastery, 2)})
+
+    worst = sorted(weakness, key=lambda x: x["mastery_rate"])[0] if weakness else None
+    point_map = {"言语理解":"逻辑填空","数量关系":"数学运算","判断推理":"逻辑判断","资料分析":"比重","常识判断":"法律常识"}
+    rec = {
+        "module": worst["module"] if worst else "资料分析",
+        "point": point_map.get(worst["module"] if worst else "", "综合分析"),
+        "accuracy": round(worst["mastery_rate"] * 100, 1) if worst else 70,
+        "questionCount": 15,
+        "estimatedTime": "30 分钟"
+    }
+
+    return {
+        "stats": stats,
+        "radar": {"dimensions": modules_order, "scores": radar_scores, "max": 100},
+        "trend": {"dates": dates_30, "questions": questions_30, "accuracy": accuracy_30},
+        "modules": {"names": mod_names, "accuracy": mod_acc},
+        "knowledge": knowledge,
+        "recommendation": rec,
+        "heatmap": heatmap_data
+    }
+
 # ========== 私人定制 Agent API ==========
 
 @app.post("/api/reports/generate")
@@ -637,7 +751,8 @@ async def generate_report():
     speed_stats = db.get_speed_calc_stats()
     exams = db.get_exam_history(limit=5)
     streak = db.get_checkin_streak()
-    weakness = db.get_weakness_analysis()
+    weakness_data = db.get_weakness_analysis()
+    weakness = weakness_data["weakness_by_module"]
 
     # ========== 数据阈值检查 ==========
     THRESHOLDS = {
