@@ -1,0 +1,44 @@
+{
+  "言语理解": {
+    "total_time": 35,
+    "sub_types": {
+      "逻辑填空": {"per_question": 40, "max_per_question": 60, "tips": "不要纠结，相信第一感觉"},
+      "片段阅读": {"per_question": 50, "max_per_question": 75, "tips": "主旨题可快，细节题可慢"},
+      "语句表达": {"per_question": 50, "max_per_question": 70, "tips": "找首句特征和关联词配对"}
+    }
+  },
+  "数量关系": {
+    "total_time": 15,
+    "sub_types": {
+      "数学运算": {"per_question": 90, "max_per_question": 120, "tips": "先挑5题简单的做，难的直接蒙"},
+      "数字推理": {"per_question": 40, "max_per_question": 60, "tips": "先看差值再看比值"}
+    }
+  },
+  "判断推理": {
+    "total_time": 35,
+    "sub_types": {
+      "图形推理": {"per_question": 40, "max_per_question": 60, "tips": "按对称→旋转→数量→叠加顺序试"},
+      "定义判断": {"per_question": 50, "max_per_question": 70, "tips": "逐句圈出主体、客体、条件、方式"},
+      "类比推理": {"per_question": 25, "max_per_question": 40, "tips": "先判断逻辑关系再看二级辨析"},
+      "逻辑判断": {"per_question": 60, "max_per_question": 90, "tips": "熟记肯前肯后、否后否前"}
+    }
+  },
+  "资料分析": {
+    "total_time": 25,
+    "per_question": 90,
+    "max_per_question": 120,
+    "tips": "每篇材料最后一题可战略性放弃"
+  },
+  "常识判断": {
+    "total_time": 10,
+    "per_question": 30,
+    "max_per_question": 50,
+    "tips": "会就选，不会就蒙，不纠结"
+  },
+  "政治理论": {
+    "total_time": 5,
+    "per_question": 30,
+    "max_per_question": 50,
+    "tips": "关注时政热点，相信第一感觉"
+  }
+}

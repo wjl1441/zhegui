@@ -1,0 +1,45 @@
+[
+  {
+    "id": "edge_001",
+    "input": "",
+    "expected_intent": null,
+    "must_include_any": ["没有完全理解", "请告诉我", "你好"],
+    "category": "空输入"
+  },
+  {
+    "id": "edge_002",
+    "input": "你好",
+    "expected_intent": "unknown",
+    "must_include_any": ["折桂", "考公", "刷题数据"],
+    "category": "问候"
+  },
+  {
+    "id": "edge_003",
+    "input": "我今天刷了20道数量关系，对了30道",
+    "expected_intent": "daily_practice",
+    "must_include_any": ["不能大于", "数据校验失败"],
+    "category": "非法正确数"
+  },
+  {
+    "id": "edge_004",
+    "input": "贵州模考，资料分析15对10",
+    "expected_intent": "mock_exam",
+    "must_include_any": ["补充", "确认", "资料分析", "共 20 题"],
+    "category": "模考题量不匹配"
+  },
+  {
+    "id": "edge_005",
+    "input": "我们上一次聊天是什么时候",
+    "expected_intent": "memory_query",
+    "must_include_any": ["根据我的记忆", "错题本"],
+    "must_not_include_any": ["每日安排", "7 天备考计划"],
+    "category": "查询记忆"
+  },
+  {
+    "id": "edge_006",
+    "input": "我现在想和你聊聊天",
+    "expected_intent": "casual_chat",
+    "must_not_include_any": ["每日安排", "7 天备考计划", "薄弱模块优先级"],
+    "category": "明确闲聊"
+  }
+]

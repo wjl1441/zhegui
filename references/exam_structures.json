@@ -1,0 +1,86 @@
+{
+  "国考副省级": {
+    "modules": [
+      {"name": "政治理论", "total": 10},
+      {"name": "常识判断", "total": 10},
+      {"name": "言语理解", "total": 40},
+      {"name": "数量关系", "total": 15},
+      {"name": "判断推理", "total": 40},
+      {"name": "资料分析", "total": 20}
+    ],
+    "total_time": 120,
+    "total_questions": 135
+  },
+  "国考地市": {
+    "modules": [
+      {"name": "政治理论", "total": 10},
+      {"name": "常识判断", "total": 10},
+      {"name": "言语理解", "total": 40},
+      {"name": "数量关系", "total": 10},
+      {"name": "判断推理", "total": 40},
+      {"name": "资料分析", "total": 20}
+    ],
+    "total_time": 120,
+    "total_questions": 130
+  },
+  "湖北": {
+    "modules": [
+      {"name": "政治理论", "total": 15},
+      {"name": "常识判断", "total": 10},
+      {"name": "言语理解", "total": 30},
+      {"name": "数量关系", "total": 15},
+      {"name": "判断推理", "total": 35},
+      {"name": "资料分析", "total": 20}
+    ],
+    "total_time": 120,
+    "total_questions": 125
+  },
+  "贵州": {
+    "modules": [
+      {"name": "政治理论", "total": 10},
+      {"name": "常识判断", "total": 10},
+      {"name": "言语理解", "total": 30},
+      {"name": "数量关系", "total": 10},
+      {"name": "判断推理", "total": 35},
+      {"name": "资料分析", "total": 20}
+    ],
+    "total_time": 120,
+    "total_questions": 115
+  },
+  "江苏": {
+    "modules": [
+      {"name": "政治理论", "total": 10},
+      {"name": "常识判断", "total": 5},
+      {"name": "言语理解", "total": 30},
+      {"name": "数量关系", "total": 20},
+      {"name": "判断推理", "total": 50},
+      {"name": "资料分析", "total": 25}
+    ],
+    "total_time": 120,
+    "total_questions": 140
+  },
+  "广东": {
+    "modules": [
+      {"name": "政治理论", "total": 10},
+      {"name": "常识判断", "total": 5},
+      {"name": "言语理解", "total": 15},
+      {"name": "数量关系", "total": 15},
+      {"name": "判断推理", "total": 35},
+      {"name": "资料分析", "total": 20}
+    ],
+    "total_time": 90,
+    "total_questions": 100
+  },
+  "浙江": {
+    "modules": [
+      {"name": "政治理论", "total": 10},
+      {"name": "常识判断", "total": 10},
+      {"name": "言语理解", "total": 30},
+      {"name": "数量关系", "total": 15},
+      {"name": "判断推理", "total": 30},
+      {"name": "资料分析", "total": 15}
+    ],
+    "total_time": 120,
+    "total_questions": 110
+  }
+}

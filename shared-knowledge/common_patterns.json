@@ -1,0 +1,17 @@
+{
+  "刷题模式": {
+    "keywords": ["刷了", "做了", "练了", "对了", "错了", "正确率"],
+    "intent": "daily_practice",
+    "description": "用户报告日常刷题情况"
+  },
+  "模考模式": {
+    "keywords": ["模考", "模拟", "套卷", "真题", "分数"],
+    "intent": "mock_exam",
+    "description": "用户报告模考或套卷成绩"
+  },
+  "考前策略": {
+    "keywords": ["快考试", "考前", "冲刺", "还有几天", "怎么复习"],
+    "intent": "pre_exam_strategy",
+    "description": "用户请求考前复习策略"
+  }
+}

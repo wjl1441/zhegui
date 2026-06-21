@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+
+# Database
+data/*.db
+*.jsonl
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+.code-graph/
+
+# Archive (personal/dev files, not for GitHub)
+_archive/
+
+# Frontend
+node_modules/
+frontend/dist/
+static/react/

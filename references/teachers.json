@@ -1,0 +1,26 @@
+{
+  "言语理解": [
+    {"name": "雨菲", "speciality": "言语理解全题型"}
+  ],
+  "数量关系": [
+    {"name": "花生", "speciality": "数量关系、资料分析"}
+  ],
+  "判断推理": [
+    {"name": "花生", "speciality": "逻辑判断"},
+    {"name": "陈意", "speciality": "类比推理"},
+    {"name": "刘义恒", "speciality": "图形推理"}
+  ],
+  "资料分析": [
+    {"name": "花生", "speciality": "资料分析、速算技巧"},
+    {"name": "高照", "speciality": "资料分析"}
+  ],
+  "常识判断": [
+    {"name": "小黑", "speciality": "常识判断、政治理论"}
+  ],
+  "申论": [
+    {"name": "袁东", "speciality": "申论全题型"}
+  ],
+  "公安专业科目": [
+    {"name": "桐哥", "speciality": "公专"}
+  ]
+}

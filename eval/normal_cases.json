@@ -1,0 +1,30 @@
+[
+  {
+    "id": "normal_001",
+    "input": "我今天刷了20道言语理解，对了12道",
+    "expected_intent": "daily_practice",
+    "must_include_any": ["正确率", "言语理解", "错题"],
+    "category": "刷题复盘"
+  },
+  {
+    "id": "normal_002",
+    "input": "贵州模考，资料分析20对15，判断推理35对28",
+    "expected_intent": "mock_exam",
+    "must_include_any": ["补充", "确认", "模块", "政治理论"],
+    "category": "模考补全"
+  },
+  {
+    "id": "normal_003",
+    "input": "快考试了，我是湖北，帮我安排考前策略",
+    "expected_intent": "pre_exam_strategy",
+    "must_include_any": ["湖北", "策略", "卷子结构", "推荐"],
+    "category": "考前策略"
+  },
+  {
+    "id": "normal_004",
+    "input": "请根据我的错题和模考记录生成7天学习计划",
+    "expected_intent": "study_plan",
+    "must_include_any": ["7 天", "备考计划", "每日安排"],
+    "category": "学习计划"
+  }
+]
