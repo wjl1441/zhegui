@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>折桂 · 考公备考 AI 助手</title>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
   <style>
     :root{
       --primary:#7a4f1d;
@@ -29,34 +28,6 @@
       --composer:132px;
       --radius:12px;
       --font: "Noto Sans SC", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-/* ── Dashboard styles ── */
-  .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
-  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; cursor: default; transition: border-color 0.15s, transform 0.15s; }
-  .metric-card:hover { border-color: var(--primary); transform: translateY(-1px); }
-  .metric-card .m-label { font-size: 12px; color: var(--muted); letter-spacing: 0.015em; }
-  .metric-card .m-value { font-size: 36px; font-weight: 700; line-height: 1.1; color: var(--text); letter-spacing: -0.02em; display: flex; align-items: baseline; gap: 2px; }
-  .metric-card .m-sub { font-size: 12px; color: var(--muted); }
-  .metric-card.accent .m-value { color: #7a4f1d; }
-  .metric-card.prominent .m-value { font-size: 44px; }
-  .m-trend { font-size: 14px; font-weight: 600; margin-left: 4px; }
-  .m-trend.up { color: var(--green); }
-  .m-trend.down { color: #c0392b; }
-  .row-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 18px; }
-  .card-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .card-head h3 { font-size: 15px; font-weight: 600; margin: 0; }
-  .card-head .note { font-size: 12px; color: var(--muted); }
-  .card-body { padding: 16px 12px 12px; }
-  .chart-box { width: 100%; height: 320px; }
-  .full .chart-box { height: 380px; }
-  .suggestion-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; row-gap: 8px; padding: 12px 20px; min-height: 44px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; margin-bottom: 18px; }
-  .suggestion-bar .sg-label { font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
-  .suggestion-bar .sg-value { font-weight: 600; color: #7a4f1d; }
-  .suggestion-bar .sg-divider { width: 1px; height: 20px; background: var(--border); }
-  .suggestion-bar .sg-cta { margin-left: auto; padding: 7px 18px; background: #7a4f1d; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background 0.15s; }
-  .suggestion-bar .sg-cta:hover { background: #5c3a14; }
-  @media (max-width: 1024px) { .metrics-row { grid-template-columns: repeat(2, 1fr); } .row-2col { grid-template-columns: 1fr; } .row-2col .chart-box, .full .chart-box { height: 300px; } .metric-card .m-value { font-size: 28px; } .metric-card.prominent .m-value { font-size: 34px; } }
-  @media (max-width: 600px) { .metrics-row { grid-template-columns: 1fr; } .chart-box { height: 280px; } .suggestion-bar { padding: 10px 14px; gap: 12px; } .suggestion-bar .sg-cta { margin-left: 0; width: 100%; text-align: center; } .suggestion-bar .sg-divider { display: none; } }
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -460,7 +431,8 @@
       </section>
 
       <!-- 工具页面（默认隐藏） -->
-      <section class="tool-page" id="tool-dashboard" style="display:none;overflow:auto;">
+      <section class="tool-page" id="tool-dashboard" style="display:none;padding:24px;overflow:auto;">
+        <h2 style="margin-bottom:16px;">📈 数据看板</h2>
         <div id="dashboard-content"></div>
       </section>
 
@@ -1410,124 +1382,22 @@
     }
 
     // ========== 数据看板 ==========
-    const DASH_COLORS = {
-      paper: '#f4efe5', surface: '#fffaf1', primary: '#7a4f1d',
-      text: '#211811', border: '#dfcfb4', muted: '#5c4d3b',
-      green: '#5b8c5a', red: '#c0392b',
-      g2: '#4caf50', g3: '#81c784', g4: '#a5d6a7', g5: '#c8e6c9', g6: '#e8f5e9'
-    };
-    var dashCharts = [];
-
     async function loadDashboard() {
       try {
-        var r = await fetch('/api/dashboard/chart-data');
-        var data = await r.json();
-        renderDashHTML(data);
-        renderDashCharts(data);
-      } catch (e) { console.error('Dashboard:', e); }
-    }
-
-    function renderDashHTML(data) {
-      var stats = data.stats;
-      var html = '';
-      stats.forEach(function(s) {
-        var unitHtml = s.unit ? '<span style="font-size:20px;font-weight:500;"> ' + s.unit + '</span>' : '';
-        var cls = 'metric-card';
-        if (s.accent) cls += ' accent';
-        if (s.prominent) cls += ' prominent';
-        var trendHtml = s.trend ? '<span class="m-trend ' + s.trend + '">' + (s.trendVal||'') + '</span>' : '';
-        html += '<div class="' + cls + '"><div class="m-label">' + s.label + '</div><div class="m-value">' + s.value + unitHtml + trendHtml + '</div><div class="m-sub">' + s.sub + '</div></div>';
-      });
-      html += '</div></div>';
-
-      var r = data.recommendation;
-      html += '<div class="suggestion-bar" id="sg-bar"><span class="sg-label">今日建议</span><span>主攻 </span><span class="sg-value">' + r.module + ' \u00b7 ' + r.point + '</span><span class="sg-label"> (' + r.accuracy + '%)</span><span class="sg-divider"></span><span class="sg-value">' + r.questionCount + ' \u9053</span><span class="sg-divider"></span><span class="sg-value">' + r.estimatedTime + '</span><button class="sg-cta" onclick="alert(\'\u5373\u5c06\u5f00\u59cb\u7ec3\u4e60\uff1a' + r.module + ' - ' + r.point + '\u3002\')">\u5f00\u59cb\u7ec3\u4e60</button></div>';
-
-      html += '<div class="row-2col"><div class="card"><div class="card-head"><h3>\u80fd\u529b\u96f7\u8fbe\u56fe</h3><span class="note">\u6bcf\u4e2a\u7ef4\u5ea6\u6ee1\u5206 100</span></div><div class="card-body"><div id="radar-chart" class="chart-box"></div></div></div>';
-      html += '<div class="card"><div class="card-head"><h3>30 \u5929\u8d8b\u52bf</h3><span class="note">\u67f1\u72b6\u56fe = \u65e5\u5237\u9898\u91cf</span></div><div class="card-body"><div id="trend-chart" class="chart-box"></div></div></div></div>';
-
-      html += '<div class="card full"><div class="card-head"><h3>\u5404\u6a21\u5757\u6b63\u786e\u7387</h3><span class="note">\u4f4e\u4e8e 60% \u7ea2\u8272\u8b66\u6212</span></div><div class="card-body"><div id="module-chart" class="chart-box"></div></div></div>';
-
-      html += '<div class="card full"><div class="card-head"><h3>\u77e5\u8bc6\u70b9\u638c\u63e1\u7387</h3><span class="note">\u6df1\u7eff = \u7cbe\u901a</span></div><div class="card-body"><div id="knowledge-chart" class="chart-box"></div></div></div>';
-
-      html += '<div class="card full" style="margin-bottom:24px;"><div class="card-head"><h3>\u6253\u5361\u65e5\u5386</h3><span class="note">\u8fd1 90 \u5929</span></div><div class="card-body"><div id="heatmap-chart" class="chart-box"></div></div></div>';
-
-      document.getElementById('dashboard-content').innerHTML = html;
-      document.getElementById('sg-bar').insertAdjacentHTML('afterbegin', '<span class="sg-label">\u4eca\u65e5\u5efa\u8bae</span>');
-    }
-
-    function renderDashCharts(d) {
-      if (typeof echarts === 'undefined') return;
-
-      // 1. Radar
-      var rc = echarts.init(document.getElementById('radar-chart'));
-      rc.setOption({
-        tooltip: {trigger: 'item'},
-        radar: {
-          center: ['50%','52%'], radius: '68%',
-          axisName: {color: DASH_COLORS.text, fontSize: 12, fontWeight: 500},
-          indicator: d.radar.dimensions.map(function(n){return {name:n, max:d.radar.max};}),
-          axisLine: {lineStyle: {color: DASH_COLORS.border}},
-          splitLine: {lineStyle: {color: DASH_COLORS.border}},
-          splitArea: {areaStyle: {color: [DASH_COLORS.surface, DASH_COLORS.paper]}}
-        },
-        series: [{type:'radar',data:[{value:d.radar.scores,name:'\u5f53\u524d\u6c34\u5e73'}],symbol:'circle',symbolSize:5,lineStyle:{color:DASH_COLORS.primary,width:2},areaStyle:{color:DASH_COLORS.primary,opacity:0.12},itemStyle:{color:DASH_COLORS.primary}}]
-      });
-      dashCharts.push(rc);
-
-      // 2. Trend
-      var tc = echarts.init(document.getElementById('trend-chart'));
-      tc.setOption({
-        tooltip: {trigger:'axis'}, legend: {data:['\u5237\u9898\u91cf','\u6b63\u786e\u7387'],bottom:0,textStyle:{color:DASH_COLORS.text,fontSize:12}},
-        grid: {left:60,right:60,top:44,bottom:42},
-        xAxis: {type:'category',data:d.trend.dates,axisLine:{lineStyle:{color:DASH_COLORS.border}},axisTick:{show:false},axisLabel:{color:DASH_COLORS.muted,fontSize:10,rotate:45}},
-        yAxis: [{type:'value',name:'\u9898\u6570',nameTextStyle:{color:DASH_COLORS.muted,fontSize:11},splitLine:{lineStyle:{color:DASH_COLORS.border,type:'dashed'}},axisLabel:{color:DASH_COLORS.muted,fontSize:11}},{type:'value',name:'%',min:50,max:100,nameTextStyle:{color:DASH_COLORS.muted,fontSize:11},splitLine:{show:false},axisLabel:{color:DASH_COLORS.muted,fontSize:11}}],
-        series: [{name:'\u5237\u9898\u91cf',type:'bar',data:d.trend.questions,barWidth:12,itemStyle:{color:DASH_COLORS.primary,borderRadius:[3,3,0,0]}},{name:'\u6b63\u786e\u7387',type:'line',yAxisIndex:1,data:d.trend.accuracy,lineStyle:{color:DASH_COLORS.green,width:2.5},itemStyle:{color:DASH_COLORS.green},symbol:'circle',symbolSize:6,smooth:true}]
-      });
-      dashCharts.push(tc);
-
-      // 3. Module bar chart
-      var mc = echarts.init(document.getElementById('module-chart'));
-      var barColors = d.modules.accuracy.map(function(v){return v<60?DASH_COLORS.red:DASH_COLORS.green;});
-      mc.setOption({
-        tooltip: {trigger:'axis',formatter:function(p){return p[0].name+'<br/>\u6b63\u786e\u7387: <b>'+p[0].value+'%</b>';}},
-        grid: {left:48,right:24,top:30,bottom:8},
-        xAxis: {type:'category',data:d.modules.names,axisLine:{lineStyle:{color:DASH_COLORS.border}},axisTick:{show:false},axisLabel:{color:DASH_COLORS.text,fontSize:13,fontWeight:500}},
-        yAxis: {type:'value',min:0,max:100,axisLabel:{formatter:'{value}%',color:DASH_COLORS.muted,fontSize:11},splitLine:{lineStyle:{color:DASH_COLORS.border,type:'dashed'}}},
-        series: [{type:'bar',barWidth:48,data:d.modules.accuracy.map(function(v,i){return{value:v,itemStyle:{color:barColors[i],borderRadius:[4,4,0,0]}};}),label:{show:true,position:'top',formatter:function(p){return p.value+'%';},color:DASH_COLORS.text,fontSize:12,fontWeight:600},markLine:{silent:true,data:[{yAxis:60,label:{formatter:'60% \u8b66\u6212\u7ebf',color:DASH_COLORS.red,fontSize:11},lineStyle:{color:DASH_COLORS.red,type:'dashed',width:1}}]}}]
-      });
-      dashCharts.push(mc);
-
-      // 4. Knowledge bar
-      var kc = echarts.init(document.getElementById('knowledge-chart'));
-      function gs(v){if(v>=0.85)return DASH_COLORS.g2;if(v>=0.75)return DASH_COLORS.g3;if(v>=0.65)return DASH_COLORS.g4;if(v>=0.55)return DASH_COLORS.g5;return DASH_COLORS.g6;}
-      var yLabels=[], prev=null, pad='\u3000\u3000\u3000\u3000  ';
-      d.knowledge.forEach(function(k){
-        if(k.module!==prev){yLabels.push(k.module+'  '+k.name);prev=k.module;}
-        else{yLabels.push(pad+k.name);}
-      });
-      var kData=d.knowledge.map(function(k){return{value:k.mastery,itemStyle:{color:gs(k.mastery),borderRadius:[0,4,4,0]}};});
-      kc.setOption({
-        tooltip:{trigger:'axis',formatter:function(p){return p[0].name.trim()+'<br/>\u638c\u63e1\u7387: <b>'+Math.round(p[0].value*100)+'%</b>';}},
-        grid:{left:130,right:60,top:8,bottom:8},
-        xAxis:{type:'value',min:0,max:1,axisLabel:{formatter:function(v){return Math.round(v*100)+'%';},color:DASH_COLORS.muted,fontSize:11},splitLine:{lineStyle:{color:DASH_COLORS.border,type:'dashed'}}},
-        yAxis:{type:'category',data:yLabels,inverse:true,axisLine:{lineStyle:{color:DASH_COLORS.border}},axisTick:{show:false},axisLabel:{color:DASH_COLORS.text,fontSize:12}},
-        series:[{type:'bar',data:kData,barWidth:16,label:{show:true,position:'right',formatter:function(p){return Math.round(p.value*100)+'%';},color:DASH_COLORS.text,fontSize:11}}]
-      });
-      dashCharts.push(kc);
-
-      // 5. Heatmap calendar
-      var hc = echarts.init(document.getElementById('heatmap-chart'));
-      hc.setOption({
-        tooltip:{position:'top',formatter:function(p){return p.value[0]+'<br/>\u5237\u9898\u91cf: <b>'+p.value[1]+'</b> \u9053';}},
-        visualMap:{min:0,max:8,calculable:true,orient:'horizontal',left:'center',bottom:4,inRange:{color:[DASH_COLORS.g6,DASH_COLORS.g5,DASH_COLORS.g4,DASH_COLORS.g3,DASH_COLORS.g2]},textStyle:{color:DASH_COLORS.text,fontSize:11},itemWidth:14,itemHeight:10},
-        calendar:{top:20,left:30,right:20,bottom:40,range:d.heatmap.length>0?[d.heatmap[0][0],d.heatmap[d.heatmap.length-1][0]]:['2026-03-23','2026-06-21'],cellSize:['auto',16],splitLine:{lineStyle:{color:DASH_COLORS.border,width:2}},itemStyle:{borderColor:DASH_COLORS.surface,borderWidth:3,borderRadius:2},yearLabel:{show:false},monthLabel:{color:DASH_COLORS.text,fontSize:11},dayLabel:{color:DASH_COLORS.text,fontSize:11,firstDay:1}},
-        series:[{type:'heatmap',coordinateSystem:'calendar',data:d.heatmap}]
-      });
-      dashCharts.push(hc);
-
-      // Resize on window resize
-      window.addEventListener('resize', function(){dashCharts.forEach(function(c){c.resize();});});
+        const r = await fetch('/api/dashboard');
+        const d = await r.json();
+        document.getElementById('dashboard-content').innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+            <div class="panel"><div class="stat"><span>连续打卡</span><b class="green">${d.streak} 天</b></div></div>
+            <div class="panel"><div class="stat"><span>错题总数</span><b>${d.mistakes.total}</b></div></div>
+            <div class="panel"><div class="stat"><span>速算练习</span><b>${d.speed_calc.total_sessions} 次</b></div></div>
+            <div class="panel"><div class="stat"><span>平均正确率</span><b class="green">${Math.round(d.speed_calc.avg_accuracy || 0)}%</b></div></div>
+          </div>
+          <div class="panel"><h3 class="panel-title">今日状态</h3>
+            <div class="stat"><span>打卡</span><b>${d.today.checkin ? '✅' : '❌'}</b></div>
+            <div class="stat"><span>速算</span><b>${d.today.speed_calc_done ? '✅' : '❌'}</b></div>
+          </div>`;
+      } catch (e) { console.error(e); }
     }
 
     // ========== 错题本 ==========
