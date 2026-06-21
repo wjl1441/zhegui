@@ -2,8 +2,8 @@
 
 省 70% Token 的混合引擎考公备考系统。
 
-![数据看板概览](screenshots/dashboard-overview.png)
-![图表分析](screenshots/dashboard-charts.png)
+![数据看板概览](screenshots/chat-interface.png)
+![图表分析](screenshots/dashboard.png)
 
 ## 核心设计
 
